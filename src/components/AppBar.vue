@@ -1,10 +1,22 @@
 <template>
-  <header class="header">LeadHit</header>
+  <header class="header">{{ heading }}</header>
 </template>
 
 <script>
 export default {
-  data: () => ({}),
+  data: () => ({
+    heading: "LeadHit",
+  }),
+
+  watch: {
+    $route(to, from) {
+      if (to.path === "/analytics") {
+        this.heading = "Аналитика";
+      } else if (to.path === "/") {
+        this.heading = "LeadHit";
+      }
+    },
+  },
 };
 </script>
 

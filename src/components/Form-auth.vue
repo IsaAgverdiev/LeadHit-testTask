@@ -1,18 +1,18 @@
 <template>
   <v-container fluid class="form-container">
-    <form action="" class="form-id">
+    <form action="" class="form-id" @submit.prevent="submit">
       <label hidden>id</label>
       <input
         type="text"
         class="form-id__input input"
         v-model="value"
-        @input="showAlert = false"
+        @input="setShowAlert(false)"
         placeholder="id сайт..."
       />
-      <button class="form-id__btn btn" @click.prevent="validate">Войти</button>
+      <button class="form-id__btn btn">Войти</button>
     </form>
     <v-alert
-      v-if="showAlert"
+      v-if="getShowAlert"
       transition="scale-transition"
       type="error"
       max-width="300"
@@ -24,47 +24,30 @@
 
 <script>
 import router from "@/router";
+import { mapMutations, mapGetters, mapActions } from "vuex";
 
 export default {
   data: () => ({
     value: "",
-    isValide: null,
-    showAlert: null,
   }),
 
+  computed: mapGetters(["getSiteID", "getShowAlert", "getResponse"]),
+
   methods: {
-    validate() {
+    ...mapMutations(["setSiteID", "setShowAlert"]),
+    ...mapActions(["fetchRes"]),
+
+    async submit() {
       if (this.value.trim().length === 24) {
-        this.isValide = true;
-        this.getData(this.value);
-      } else {
-        this.showAlert = true;
-        this.isValide = false;
-      }
-    },
+        this.setSiteID(this.value);
+        await this.fetchRes(this.getSiteID);
 
-    hiddenAlert() {
-      this.showAlert = false;
-    },
-
-    async getData(value) {
-      const response = await fetch(
-        "https://track-api.leadhit.io/client/test_auth",
-        {
-          method: "GET",
-          headers: {
-            "Api-Key": "5f8475902b0be670555f1bb3:eEZn8u05G3bzRpdL7RiHCvrYAYo",
-            "Leadhit-Site-Id": value,
-          },
+        if (this.getResponse.message === "ok") {
+          localStorage.setItem("leadhit-site-id", this.getSiteID);
+          router.push({ path: "/analytics" });
         }
-      );
-
-      if (response.ok) {
-        let json = await response.json();
-        // localStorage.setItem("leadhit-site-id", value);
-        router.push({ path: "/analytics" });
       } else {
-        alert("Ошибка HTTP: " + response.status);
+        this.setShowAlert(true);
       }
     },
   },
